@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<robot name="kuka_kr120_on_rail" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!--TODO color definition still in two places, fix-->
+<!--Load color definitions-->
+<xacro:include filename="$(find kuka_on_rail)/urdf/materials.xacro" />
+
+<!--Create rail to put the kuka arm on-->
+<link name="base_link">
+  <visual>
+    <geometry>
+      <box size="0.2 0.2 0.01"/>
+    </geometry>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.2 0.2 0.01"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="rail">
+  <visual>
+    <geometry>
+      <box size="0.6 3 0.1"/>
+    </geometry>
+    <origin xyz="0 0 0.05"/>
+    <material name="DarkGrey"/>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.6 3 0.1"/>
+    </geometry>
+    <origin xyz="0 0 0.05"/>
+  </collision>
+</link>
+
+<joint name="base_to_rail" type="fixed">
+  <parent link="base_link"/>
+  <child link="rail"/>
+  <origin xyz="0 0 1"/>
+</joint>
+
+<!--Put kuka arm on rail-->
+<xacro:include filename="$(find kuka_kr120_support)/urdf/kr120r2500pro_macro.xacro" />
+<xacro:kuka_kr120r2500pro prefix="arm_"/>
+
+<joint name="rail_to_arm_base_link" type="prismatic">
+  <parent link="rail"/>
+  <child link="arm_base_link"/>
+  <limit effort="1000.0" lower="-1" upper="1" velocity="0.5"/>
+  <axis xyz="0 1 0"/>
+  <origin rpy="0 0 0" xyz="0 0 0.1"/>
+</joint>
+
+<!--Add cilinder as dummy welding torch with frame on tip-->
+<link name="welding_torch">
+  <visual>
+    <geometry>
+      <cylinder length="0.2" radius="0.02"/>
+    </geometry>
+    <origin xyz="0 0 -0.1"/>
+    <material name="Black"/>
+  </visual>
+  <collision>
+    <geometry>
+      <cylinder length="0.2" radius="0.02"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="tool_to_torch" type="fixed">
+  <parent link="arm_tool0"/>
+  <child link="welding_torch"/>
+  <origin xyz="0 0 0.2"/>
+</joint>
+
+<!--Add the turn table to as a part of the robot-->
+<xacro:include filename="$(find kuka_on_rail)/urdf/turn_table_macro.xacro" />
+<xacro:turn_table prefix="tab_"/>
+
+<joint name="base_link_to_table_base_link" type="fixed">
+  <parent link="base_link"/>
+  <child link="tab_base_link"/>
+  <origin rpy="0 0 0" xyz="1.5 -1.5 0"/>
+</joint>
+
+</robot>
